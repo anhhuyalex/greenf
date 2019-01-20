@@ -192,7 +192,7 @@ def _calculate(z_n, x_, y_, z_, x_o, y_o, z_o, t_n = 1.0, e_n = 1.0, N = 20, k =
     for k in range(sum_ + 1, 3*N - 3):
         V[k] = A[k].dot(V[k - 1])
     # elif x_t + y_t + z_t < sum_:
-    for k in range(sum_ - 1, 0):
+    for k in range(sum_ - 1, 0, -1):
         V[k] = A[k].dot(V[k + 1])
 
     # return V[x_t + y_t + z_t]
@@ -206,10 +206,11 @@ def _calculate(z_n, x_, y_, z_, x_o, y_o, z_o, t_n = 1.0, e_n = 1.0, N = 20, k =
 N=20
 mapping, inv_mapping = index_triple_maps(N)
 X = []
-Y = []
+true_Y = []
+pred_Y = []
 for _ in range(1000):
     x_, y_, z_ = np.random.randint(20, size=3)
-    if x_ + y_ + z_ == 3*N - 3:
+    if (x_ + y_ + z_ == 3*N - 3) or (x_ + y_ + z_ == 0):
         continue
     omit = np.full(N**3, 1)
     omit[np.random.randint(N**3)] = 0
@@ -234,63 +235,65 @@ for _ in range(1000):
     
     # Calculate error 
     for k in true_value.keys():
-        error = np.absolute((predicted_value[k] - true_value[k]) / true_value[k] * 100)
+        # relative error = modulus of error / modulus of true value
+        # error = np.absolute((predicted_value[k] - true_value[k]) / true_value[k] * 100)
+        print ("I'm printing key", k)
         for index, triple in enumerate(_inv_mapping[k].keys()):
             (x, y, z) = triple
             x, y, z, x__, y__, z__, x_o_, y_o_, z_o_ = (np.array([x, y, z, x_, y_, z_, x_o, y_o, z_o], dtype=float) / 10.0) - 1
             X.append([x, y, z, x__, y__, z__, x_o_, y_o_, z_o_, energy])
-        Y.append(error)
+        true_Y.append(true_value[k])
+        pred_Y.append(predicted_value[k])
 
 X = np.array(X)
-print ("Error shapes", [ (i).shape for i in Y])
-Y_ = np.concatenate(Y)
-Y_ = (Y_ - np.mean(Y_))/np.std(Y_)
-Y_.shape
-
-from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, Y_, test_size=0.2, random_state=42)
-print (X_train.shape)
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.wrappers.scikit_learn import KerasRegressor
-from keras import regularizers
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import KFold
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
-from sklearn.metrics import mean_squared_error
-
-
-seed = 7
-np.random.seed(seed)
-
-
-
-def baseline_model():
-    # create model
-    model = Sequential()
-    model.add(Dense(40, input_dim=10, kernel_initializer='normal', activation='relu', kernel_regularizer=regularizers.l2(0.001)))
-    model.add(Dense(40, input_dim=40, kernel_initializer='normal', activation='relu', kernel_regularizer=regularizers.l2(0.001)))
-    model.add(Dense(40, input_dim=40, kernel_initializer='normal', activation='relu', kernel_regularizer=regularizers.l2(0.001)))
-    model.add(Dense(1, kernel_initializer='normal', kernel_regularizer=regularizers.l2(0.001)))
-    # Compile model
-    model.compile(loss='mean_squared_error', optimizer='adam', metrics = ["mean_squared_error"])
-    return model
-
-# estimator = KerasRegressor(build_fn=baseline_model, epochs=200, batch_size=50, verbose=1)
-
-# # kfold = KFold(n_splits=2, random_state=seed)
-# # results = cross_val_score(estimator, X_train, y_train, cv=kfold)
-# # print("Results: %.2f (%.2f) MSE" % (results.mean(), results.std()))
-# # print ("Results", results)
-
-# estimator.fit(X_train, y_train)
-# prediction = estimator.predict(X_test)
-# print ("Mean squared error:",  mean_squared_error(y_test, prediction))
+true_Y = np.concatenate(true_Y)
+pred_Y = np.concatenate(pred_Y)
 np.save("pred", X)
-np.save("target", Y_)
+np.save("true_Y", true_Y)
+np.save("pred_Y", pred_Y)
+
+# from sklearn.model_selection import train_test_split
+# X_train, X_test, y_train, y_test = train_test_split(X, Y_, test_size=0.2, random_state=42)
+# print (X_train.shape)
+# from keras.models import Sequential
+# from keras.layers import Dense
+# from keras.wrappers.scikit_learn import KerasRegressor
+# from keras import regularizers
+# from sklearn.model_selection import cross_val_score
+# from sklearn.model_selection import KFold
+# from sklearn.preprocessing import StandardScaler
+# from sklearn.pipeline import Pipeline
+# from sklearn.metrics import mean_squared_error
 
 
 
 
-# Reimplement since we generate a ton of data with one calculation
+
+
+# def baseline_model():
+#     # create model
+#     model = Sequential()
+#     model.add(Dense(40, input_dim=10, kernel_initializer='normal', activation='relu', kernel_regularizer=regularizers.l2(0.001)))
+#     model.add(Dense(40, input_dim=40, kernel_initializer='normal', activation='relu', kernel_regularizer=regularizers.l2(0.001)))
+#     model.add(Dense(40, input_dim=40, kernel_initializer='normal', activation='relu', kernel_regularizer=regularizers.l2(0.001)))
+#     model.add(Dense(1, kernel_initializer='normal', kernel_regularizer=regularizers.l2(0.001)))
+#     # Compile model
+#     model.compile(loss='mean_squared_error', optimizer='adam', metrics = ["mean_squared_error"])
+#     return model
+
+# # estimator = KerasRegressor(build_fn=baseline_model, epochs=200, batch_size=50, verbose=1)
+
+# # # kfold = KFold(n_splits=2, random_state=seed)
+# # # results = cross_val_score(estimator, X_train, y_train, cv=kfold)
+# # # print("Results: %.2f (%.2f) MSE" % (results.mean(), results.std()))
+# # # print ("Results", results)
+
+# # estimator.fit(X_train, y_train)
+# # prediction = estimator.predict(X_test)
+# # print ("Mean squared error:",  mean_squared_error(y_test, prediction))
+
+
+
+
+
+# # Reimplement since we generate a ton of data with one calculation
