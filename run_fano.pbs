@@ -1,5 +1,5 @@
 #PBS -S /bin/bash
-#PBS -N explore_omit
+#PBS -N localization
 #PBS -l nodes=1:ppn=2
 
 export MKL_NUM_THREADS=2
@@ -22,7 +22,7 @@ fi
 
 if [ ! -d "/tmp/alexn1000" ]; then
 	mkdir -p /tmp/alexn1000
-	cp explore_omit.py /tmp/alexn1000/.
+	cp localization.py /tmp/alexn1000/.
 	# cp -r ../Data /tmp/alexn1000/.
 	cd /tmp/alexn1000
 	# mkdir Results_temp
@@ -33,7 +33,7 @@ if [ ! -d "/tmp/alexn1000" ]; then
 	#(time python test.py > out.txt) >& expand_time.out
 	
 	which python
-	python explore_omit.py > caca.txt
+	python localization.py 
 
 	echo "The job has been completed."
 	echo "compress the output"
@@ -41,7 +41,7 @@ if [ ! -d "/tmp/alexn1000" ]; then
 	#echo "Move the output to the working directory"
 	echo "Move the Folder Results and out.txt"
 	ls /tmp/alexn1000/
-	cp /tmp/alexn1000/* /home/anguyen/explore/.
+	cp /tmp/alexn1000/* /home/anguyen/diagonalization/localize
 	# cp /tmp/alexn1000/caca.txt ../Results_lmax_04/SSH-output-GPSS_k-pi_alpha_EK_max-lssh_0.4_N10.txt
 	cd /tmp
 	echo "Remove temporary files"
