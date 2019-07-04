@@ -1,5 +1,5 @@
 #PBS -S /bin/bash
-#PBS -N localization
+#PBS -N localization1
 #PBS -l nodes=1:ppn=2
 
 export MKL_NUM_THREADS=2
@@ -16,35 +16,43 @@ cd /tmp
 echo "Starting run at: `date`"
 cd $PBS_O_WORKDIR
 
-if [ -d "/tmp/alexn1000" ]; then
-	rm -r /tmp/alexn1000/
-fi
+#if [ -d "/tmp/alexn1000" ]; then
+#	rm -r /tmp/alexn1000/
+#fi
 
-if [ ! -d "/tmp/alexn1000" ]; then
-	mkdir -p /tmp/alexn1000
-	cp localization.py /tmp/alexn1000/.
-	# cp -r ../Data /tmp/alexn1000/.
-	cd /tmp/alexn1000
-	# mkdir Results_temp
-	
-	echo "Working directory is" $PBS_O_WORKDIR
-	echo "Running directory is" $PWD
-	# TEST
-	#(time python test.py > out.txt) >& expand_time.out
-	
-	which python
-	python localization.py 
+# mkdir -p /tmp/alexn1000
+#cp test.py /tmp/alexn1000/.
+cp localizationw\=1.py /tmp/alexn1000/.
+cp localizationw\=2.py /tmp/alexn1000/.
+cp localizationw\=3.py /tmp/alexn1000/.
+cp localizationw\=4.py /tmp/alexn1000/.
+# cp -r ../Data /tmp/alexn1000/.
+cd /tmp/alexn1000
+# mkdir -p greenf
 
-	echo "The job has been completed."
-	echo "compress the output"
-	cd $PBS_O_WORKDIR 
-	#echo "Move the output to the working directory"
-	echo "Move the Folder Results and out.txt"
-	ls /tmp/alexn1000/
-	cp /tmp/alexn1000/* /home/anguyen/diagonalization/localize
-	# cp /tmp/alexn1000/caca.txt ../Results_lmax_04/SSH-output-GPSS_k-pi_alpha_EK_max-lssh_0.4_N10.txt
-	cd /tmp
-	echo "Remove temporary files"
-	rm -rf alexn1000
-	echo "Program finished at: `date`"
-fi
+# mkdir Results_temp
+
+echo "Working directory is" $PBS_O_WORKDIR
+echo "Running directory is" $PWD
+# TEST
+#(time python test.py > out.txt) >& expand_time.out
+
+which python
+python localizationw\=1.py 
+#python localizationw\=2.py 
+#python localizationw\=3.py 
+#python localizationw\=4.py 
+#python test.py
+
+echo "The job has been completed."
+echo "compress the output"
+cd $PBS_O_WORKDIR 
+#echo "Move the output to the working directory"
+echo "Move the Folder Results and out.txt"
+ls /tmp/alexn1000/
+cp -r /tmp/alexn1000/* /home/anguyen/diagonalization/localize
+cd /tmp
+echo "Remove temporary files"
+# rm -rf alexn1000
+echo "Program finished at: `date`"
+

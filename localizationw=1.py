@@ -350,15 +350,18 @@ for _ in range(1):
     greenf = OrderedDict()
     greenf["true_value"] = true_value
 
-    R = [mapping[i][0] for i in true_value] # a certain element of distance R away
+    R = [(mapping[i][0]) for i in true_value] # a certain element of distance R away
+    # print(*R[-10:][::-1], sep='\n')
     predicted_value = OrderedDict()
-    for x, y, z in R:
+    for x, y, z in R[-10:][::-1]:
         pred = drop_off(N, mapping, inv_mapping, x, y, z, x_, y_, z_, true_value, H, site_coordinate)
         predicted_value[sum([x, y, z])] = pred
 
     greenf["predicted_value"] = predicted_value
     now = datetime.datetime.now()
-    with open('greenf/greenfs-{}.pickle'.format(now.isoformat()), 'wb') as handle:
+    root_dir = ""
+    filename = "{}greenfs-w=2-{}.pickle".format(root_dir, now.isoformat())
+    with open(filename, 'wb') as handle:
         pickle.dump(greenf, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 # x, y, z = (0, 0, 1)
