@@ -360,7 +360,7 @@ for _ in range(1):
     greenf["predicted_value"] = predicted_value
     now = datetime.datetime.now()
     root_dir = ""
-    filename = "{}greenfs-w=2-{}.pickle".format(root_dir, now.isoformat())
+    filename = "{}greenfs-w=4-{}.pickle".format(root_dir, now.isoformat())
     with open(filename, 'wb') as handle:
         pickle.dump(greenf, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
