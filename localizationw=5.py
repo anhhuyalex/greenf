@@ -274,7 +274,7 @@ def sign(control, target):
 energy = 0 # np.random.uniform(-1, 1) 
 imag = 0.1j
 N = 20
-W = 1
+W = 5
 x_, y_, z_ = (19,19,18)
 threshold = 0.01
 
@@ -360,7 +360,7 @@ for _ in range(15):
     greenf["predicted_value"] = predicted_value
     now = datetime.datetime.now()
     root_dir = ""
-    filename = "{}greenfs-w=1-{}.pickle".format(root_dir, now.isoformat())
+    filename = "{}greenfs-w=5-{}.pickle".format(root_dir, now.isoformat())
     with open(filename, 'wb') as handle:
         pickle.dump(greenf, handle, protocol=pickle.HIGHEST_PROTOCOL)
 

@@ -343,7 +343,7 @@ def drop_off(N, mapping, inv_mapping, x, y, z, x_, y_, z_, true_value, H, site_c
                 break
     return predicted_value
 
-for _ in range(1):
+for _ in range(15):
     mapping, inv_mapping = index_triple_maps(N)
     H, site_coordinate = Hamiltonian(N, W) #sample a Hamiltonian
     true_value = (_calculate(N, energy+imag, x_, y_, z_, H, site_coordinate, mapping, inv_mapping))

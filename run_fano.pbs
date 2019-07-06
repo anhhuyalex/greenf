@@ -1,5 +1,5 @@
 #PBS -S /bin/bash
-#PBS -N localization1
+#PBS -N localization5
 #PBS -l nodes=1:ppn=2
 
 export MKL_NUM_THREADS=2
@@ -26,6 +26,7 @@ cp localizationw\=1.py /tmp/alexn1000/.
 cp localizationw\=2.py /tmp/alexn1000/.
 cp localizationw\=3.py /tmp/alexn1000/.
 cp localizationw\=4.py /tmp/alexn1000/.
+cp localizationw\=5.py /tmp/alexn1000/.
 # cp -r ../Data /tmp/alexn1000/.
 cd /tmp/alexn1000
 # mkdir -p greenf
@@ -38,10 +39,11 @@ echo "Running directory is" $PWD
 #(time python test.py > out.txt) >& expand_time.out
 
 which python
-python localizationw\=1.py 
+#python localizationw\=1.py 
 #python localizationw\=2.py 
 #python localizationw\=3.py 
 #python localizationw\=4.py 
+python localizationw\=5.py 
 #python test.py
 
 echo "The job has been completed."
