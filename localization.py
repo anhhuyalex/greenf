@@ -5,6 +5,12 @@ from collections import OrderedDict
 import pickle
 import datetime
 
+energy = 0 # np.random.uniform(-1, 1) 
+imag = 0.1j
+N = 20
+W = 1
+x_, y_, z_ = (19,19,18)
+threshold = 0.01
 
 def generate_triples(N, total):
     # List containing generated triples
@@ -271,15 +277,6 @@ def sign(control, target):
     else:
         return -1
 
-energy = 0 # np.random.uniform(-1, 1) 
-imag = 0.1j
-N = 20
-W = 1
-x_, y_, z_ = (19,19,18)
-threshold = 0.01
-
-print("Saving to file", 'greenfs-{}-{}-{}.pickle'.format(x_, y_, z_))
-
 
 
 # true_value = true_value[sum([x_, y_, z_])][inv_mapping[sum([x_, y_, z_])][(0,0,0)]]
@@ -343,35 +340,31 @@ def drop_off(N, mapping, inv_mapping, x, y, z, x_, y_, z_, true_value, H, site_c
                 break
     return predicted_value
 
-for _ in range(15):
-    mapping, inv_mapping = index_triple_maps(N)
-    H, site_coordinate = Hamiltonian(N, W) #sample a Hamiltonian
-    true_value = (_calculate(N, energy+imag, x_, y_, z_, H, site_coordinate, mapping, inv_mapping))
-    greenf = OrderedDict()
-    greenf["true_value"] = true_value
 
-    R = [(mapping[i][0]) for i in true_value] # a certain element of distance R away
-    # print(*R[-10:][::-1], sep='\n')
-    predicted_value = OrderedDict()
-    for x, y, z in R[-10:][::-1]:
-        pred = drop_off(N, mapping, inv_mapping, x, y, z, x_, y_, z_, true_value, H, site_coordinate)
-        predicted_value[sum([x, y, z])] = pred
 
-    greenf["predicted_value"] = predicted_value
-    now = datetime.datetime.now()
-    root_dir = ""
-    filename = "{}greenfs-w=1-{}.pickle".format(root_dir, now.isoformat())
-    with open(filename, 'wb') as handle:
-        pickle.dump(greenf, handle, protocol=pickle.HIGHEST_PROTOCOL)
+print("Saving to file", 'greenfs-{}-{}-{}.pickle'.format(x_, y_, z_))
 
-# x, y, z = (0, 0, 1)
+def localization(energy = energy, imag = imag, N = N, W = W, x_ = x_, y_ = y_, z_ = z_,
+                threshold = threshold):
+    for _ in range(15):
+        mapping, inv_mapping = index_triple_maps(N)
+        H, site_coordinate = Hamiltonian(N, W) #sample a Hamiltonian
+        true_value = (_calculate(N, energy+imag, x_, y_, z_, H, site_coordinate, mapping, inv_mapping))
+        greenf = OrderedDict()
+        greenf["true_value"] = true_value
 
-# true_value = true_value[sum([x, y, z])][inv_mapping[sum([x, y, z])][(x, y, z)]]
-# 
-# true_value = np.log(np.absolute(true_value)) 
-# print("True value", true_value)
+        R = [(mapping[i][0]) for i in true_value] # a certain element of distance R away
+        # print(*R[-10:][::-1], sep='\n')
+        predicted_value = OrderedDict()
+        for x, y, z in R[-10:][::-1]:
+            pred = drop_off(N, mapping, inv_mapping, x, y, z, x_, y_, z_, true_value, H, site_coordinate)
+            predicted_value[sum([x, y, z])] = pred
 
-# print("batches", batches)
-        
-# plt.plot(range(8000), omit)
-# plt.show()
+        greenf["predicted_value"] = predicted_value
+        now = datetime.datetime.now()
+        root_dir = ""
+        filename = "{}greenfs-w={}-{}.pickle".format(root_dir, str(W), now.isoformat())
+        with open(filename, 'wb') as handle:
+            pickle.dump(greenf, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+localization()
