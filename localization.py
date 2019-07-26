@@ -5,10 +5,10 @@ from collections import OrderedDict
 import pickle
 import datetime
 
-energy = 0 # np.random.uniform(-1, 1) 
+energy = 0 # np.random.uniform(-1, 1)
 imag = 0.1j
 N = 20
-W = 1
+W = 1.5
 x_, y_, z_ = (19,19,18)
 threshold = 0.01
 
@@ -16,7 +16,7 @@ def generate_triples(N, total):
     # List containing generated triples
     gen = []
 
-    
+
     if 0 <= total <= N - 1:
         # Generate first element
         i, j, k = (0, 0, total)
@@ -29,7 +29,7 @@ def generate_triples(N, total):
             i += 1
             j = 0
             k = total - i
-            
+
                 # pass
 
     elif N <= total <= 2*N - 3:
@@ -45,7 +45,7 @@ def generate_triples(N, total):
             j = total - i - k
 
 
-            
+
     elif 2*N - 2 <= total <= 3*N - 3:
         # Generate first element
         i, j, k = (total - 2*N + 2, N-1, N-1)
@@ -57,7 +57,7 @@ def generate_triples(N, total):
             i += 1
             k = min(N-1, total - i)
             j = total - i - k
-        
+
     else:
         raise ValueError("Not applicable k")
 
@@ -84,7 +84,7 @@ def Hamiltonian(N, W = 1.0, disorder = True, e_n = 1.0, t_n = 1.0):
             W = degree of disorder
         outputs
             H = Hamiltonian
-            inv_mapping = coordinate of each state 
+            inv_mapping = coordinate of each state
     """
 
     def gen_triples(N):
@@ -124,11 +124,11 @@ def Hamiltonian(N, W = 1.0, disorder = True, e_n = 1.0, t_n = 1.0):
 
 
 def omit_sites(inv_mapping, omit):
-    print ("Omitting", (omit).shape[0] - np.sum(omit), "sites")    
+    print ("Omitting", (omit).shape[0] - np.sum(omit), "sites")
     site = 0
     new_inv_map = {}
     new_map = {}
-    
+
     for sum_ in inv_mapping.keys():
         inv_sum_k_sites = OrderedDict()
         sum_k_sites = OrderedDict()
@@ -147,15 +147,13 @@ def omit_sites(inv_mapping, omit):
 
     return new_map, new_inv_map
 
-def _calculate(N, z_n, x_, y_, z_, Hamiltonian, site_coordinate, mapping, inv_mapping,
+def _build_ab_matrices(N, z_n, Hamiltonian, site_coordinate, mapping, inv_mapping,\
                 t_n = 1.0, e_n = 1.0, k = 1, c = complex):
 
-    
     # amplitude = 1
     a = {}
     b = {}
 
-    # tic = time.time()
     for k in range(3*N-2):
         alpha_num_entries = len(inv_mapping[k-1]) if k > 0 else 0
         my_entries = len(inv_mapping[k])
@@ -177,7 +175,7 @@ def _calculate(N, z_n, x_, y_, z_, Hamiltonian, site_coordinate, mapping, inv_ma
                         b_k[index, inv_mapping[k + 1][x + 1, y, z]] = amplitude
                     except:
                         pass
-                    
+
                 if y < N - 1:
                     try:
                         b_k[index, inv_mapping[k + 1][x, y + 1, z]] = amplitude
@@ -189,7 +187,7 @@ def _calculate(N, z_n, x_, y_, z_, Hamiltonian, site_coordinate, mapping, inv_ma
                         b_k[index, inv_mapping[k + 1][x, y, z + 1]] = amplitude
                     except:
                         pass
-#             # Calculate a_k
+            # Calculate a_k
             if 0 < k:
                 if x > 0:
                     try:
@@ -211,22 +209,31 @@ def _calculate(N, z_n, x_, y_, z_, Hamiltonian, site_coordinate, mapping, inv_ma
 
         a[k] = a_k
         b[k] = b_k
-    # toc = time.time()
     # print ("Time building a, b matrices", toc - tic)
+    for _ in a:
+        print("a[{}]: \n{}".format(_, a[_]))
+    # print("b", b)
+    return a, b
+
+def _calculate(N, z_n, x_, y_, z_, Hamiltonian, site_coordinate, mapping, inv_mapping,
+                t_n = 1.0, e_n = 1.0, k = 1, c = complex):
+
+    a, b = _build_ab_matrices(N, z_n, Hamiltonian, site_coordinate, mapping, inv_mapping,
+                    t_n = t_n, e_n = e_n, k = k, c = c)
 
     # Calculate C
     sum_ = sum([x_, y_, z_])
-    
+
     C = np.zeros(shape = (len(inv_mapping[sum_]), 1), dtype = complex)
     site = site_coordinate[(x_,y_,z_)]
     e_n = Hamiltonian[site, site]
     C[inv_mapping[sum_][(x_, y_, z_)]] = 1. / (z_n - e_n)
-    
-        
 
 
 
-    # Calculate Multiplicative Factors 
+
+
+    # Calculate Multiplicative Factors
     A = {}
     G = {}
     A[1] = b[1]
@@ -243,21 +250,21 @@ def _calculate(N, z_n, x_, y_, z_, Hamiltonian, site_coordinate, mapping, inv_ma
     for k in range(3*N - 5, sum_, -1):
         A[k] = np.linalg.solve(np.eye(len(inv_mapping[k])) - b[k].dot(A[k + 1]), a[k])
 
-    
+
     # Calculate Green's Functions
     V = OrderedDict()
     k = sum_
     if 1 < k < 3*N-4:
-        V[k] = np.linalg.solve(np.eye(len(inv_mapping[k])) - a[k].dot(A[k - 1]) - b[k].dot(A[k + 1]), 
+        V[k] = np.linalg.solve(np.eye(len(inv_mapping[k])) - a[k].dot(A[k - 1]) - b[k].dot(A[k + 1]),
                             C)
     elif k == 1:
-        V[k] = np.linalg.solve(np.eye(len(inv_mapping[k])) - b[k].dot(A[k + 1]), 
+        V[k] = np.linalg.solve(np.eye(len(inv_mapping[k])) - b[k].dot(A[k + 1]),
                             C)
     elif k == 3*N - 4:
-        V[k] = np.linalg.solve(np.eye(len(inv_mapping[k])) - a[k].dot(A[k - 1]), 
+        V[k] = np.linalg.solve(np.eye(len(inv_mapping[k])) - a[k].dot(A[k - 1]),
                             C)
-            
-    
+
+
     # if x_t + y_t + z_t > sum_:
     for k in range(sum_ + 1, 3*N - 3):
         V[k] = A[k].dot(V[k - 1])
@@ -297,11 +304,11 @@ def drop_off(N, mapping, inv_mapping, x, y, z, x_, y_, z_, true_value, H, site_c
         print ([(len(batch), status) for batch, status in batches.items()])
         for batch, status in batches.items():
             if (status == 0) and len(batch) > 0: #if batch needs to be expanded
-                
+
                 minibatches = np.array_split(batch, 2) # divide batch of states to investigate into minibatches
 
                 for minibatch in minibatches[::-1]:
-                    
+
                     print ("len(minibatch)", len(minibatch))
                     omit[(minibatch)] = 0
                     _mapping, _inv_mapping = omit_sites(inv_mapping, omit)
@@ -367,4 +374,5 @@ def localization(energy = energy, imag = imag, N = N, W = W, x_ = x_, y_ = y_, z
         with open(filename, 'wb') as handle:
             pickle.dump(greenf, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-localization()
+if __name__ == "__main__":
+    localization()
